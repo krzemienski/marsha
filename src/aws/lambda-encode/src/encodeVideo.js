@@ -1,4 +1,9 @@
 const AWS = require('aws-sdk');
+const util = require('util');
+
+const execFile = util.promisify(require('child_process').execFile);
+
+const s3 = new AWS.S3({ apiVersion: '2006-03-01', signatureVersion: 'v4' });
 
 /**
  * Build the appropriate parameters object using our presets and pass it along
@@ -9,6 +14,23 @@ const AWS = require('aws-sdk');
 module.exports = async (objectKey, sourceBucket) => {
   const envType = process.env.ENV_TYPE;
   const destinationBucket = process.env.S3_DESTINATION_BUCKET;
+
+  const signedUrl = await s3.getSignedUrlPromise(
+    'getObject',
+    {
+      Bucket: sourceBucket,
+      Expires: 1200,
+      Key: objectKey
+    }
+  );
+
+  const { stdout, stderr } = await execFile('mediainfo', [
+    '--full',
+    '--output=JSON',
+    signedUrl
+  ]);
+  console.log('stdout:', stdout);
+  console.log('stderr:', stderr);
 
   let params = {
     Role: process.env.MEDIA_CONVERT_ROLE,

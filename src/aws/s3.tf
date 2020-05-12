@@ -6,7 +6,7 @@ resource "aws_s3_bucket" "marsha_source" {
 
   cors_rule {
     allowed_headers = ["*"]
-    allowed_methods = ["POST"]
+    allowed_methods = ["POST", "GET"]
     allowed_origins = ["*"]
     max_age_seconds = 3600
   }
